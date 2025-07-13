@@ -1,0 +1,1 @@
+Advanced To-Do List App - A Flask web application for efficient task management featuring user authentication, file attachments, recurring tasks, calendar integration, and responsive Bootstrap 5 design. Perfect for personal productivity and task organization. 

@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if due_tasks and due_tasks|length > 0 %}
+<div class="alert alert-warning" role="alert">
+    <strong>Reminder:</strong> You have tasks due or overdue!
+    <ul class="mb-0">
+        {% for task in due_tasks %}
+        <li>{{ task.title }} (Due: {{ task.due_date.strftime('%Y-%m-%d') }})</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Your Tasks</h2>
+    <a href="{{ url_for('add_task') }}" class="btn btn-success">Add Task</a>
+</div>
+<form method="get" action="{{ url_for('tasks') }}" class="row g-2 mb-4">
+    <div class="col-md-2">
+        <select name="status" class="form-select">
+            <option value="">All</option>
+            <option value="complete" {% if status == 'complete' %}selected{% endif %}>Complete</option>
+            <option value="incomplete" {% if status == 'incomplete' %}selected{% endif %}>Incomplete</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="priority" class="form-select">
+            <option value="">All Priorities</option>
+            <option value="Low" {% if priority == 'Low' %}selected{% endif %}>Low</option>
+            <option value="Medium" {% if priority == 'Medium' %}selected{% endif %}>Medium</option>
+            <option value="High" {% if priority == 'High' %}selected{% endif %}>High</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <input type="text" name="category" class="form-control" placeholder="Category" value="{{ category or '' }}">
+    </div>
+    <div class="col-md-2">
+        <select name="sort" class="form-select">
+            <option value="due_date" {% if sort == 'due_date' %}selected{% endif %}>Sort by Due Date</option>
+            <option value="priority" {% if sort == 'priority' %}selected{% endif %}>Sort by Priority</option>
+            <option value="title" {% if sort == 'title' %}selected{% endif %}>Sort by Title</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <input type="text" name="search" class="form-control" placeholder="Search" value="{{ search or '' }}">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Apply</button>
+    </div>
+</form>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Due Date</th>
+            <th>Priority</th>
+            <th>Category</th>
+            <th>Completed</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+        <tr id="task-row-{{ task.id }}">
+            <td>{{ task.title }}</td>
+            <td>{{ task.description }}</td>
+            <td>{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}</td>
+            <td>{{ task.priority }}</td>
+            <td>{{ task.category }}</td>
+            <td>
+                <input type="checkbox" class="form-check-input toggle-complete" data-task-id="{{ task.id }}" {% if task.completed %}checked{% endif %}>
+            </td>
+            <td>
+                <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-sm btn-primary">Edit</a>
+                <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this task?');">Delete</button>
+                </form>
+                <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST" style="display:inline; display:none;">
+                    <button type="submit" class="btn btn-sm btn-secondary">
+                        {{ 'Mark Incomplete' if task.completed else 'Mark Complete' }}
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="7" class="text-center">No tasks found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<script>
+document.querySelectorAll('.toggle-complete').forEach(function(checkbox) {
+    checkbox.addEventListener('change', function() {
+        const taskId = this.getAttribute('data-task-id');
+        fetch(`/api/tasks/toggle/${taskId}`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Optionally update the row style or show a toast
+            } else {
+                alert('Failed to update task status.');
+            }
+        })
+        .catch(() => alert('Failed to update task status.'));
+    });
+});
+</script>
+{% endblock %} 

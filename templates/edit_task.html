@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2>Edit Task</h2>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" class="form-control" id="title" name="title" value="{{ task.title }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description">{{ task.description }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="due_date" class="form-label">Due Date</label>
+                <input type="date" class="form-control" id="due_date" name="due_date" value="{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}">
+            </div>
+            <div class="mb-3">
+                <label for="priority" class="form-label">Priority</label>
+                <select class="form-select" id="priority" name="priority">
+                    <option value="" {% if not task.priority %}selected{% endif %}>Select</option>
+                    <option value="Low" {% if task.priority == 'Low' %}selected{% endif %}>Low</option>
+                    <option value="Medium" {% if task.priority == 'Medium' %}selected{% endif %}>Medium</option>
+                    <option value="High" {% if task.priority == 'High' %}selected{% endif %}>High</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                <input type="text" class="form-control" id="category" name="category" value="{{ task.category }}">
+            </div>
+            <div class="mb-3">
+                <label for="recurrence" class="form-label">Recurrence</label>
+                <select class="form-select" id="recurrence" name="recurrence">
+                    <option value="" {% if not task.recurrence %}selected{% endif %}>None</option>
+                    <option value="Daily" {% if task.recurrence == 'Daily' %}selected{% endif %}>Daily</option>
+                    <option value="Weekly" {% if task.recurrence == 'Weekly' %}selected{% endif %}>Weekly</option>
+                    <option value="Monthly" {% if task.recurrence == 'Monthly' %}selected{% endif %}>Monthly</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Subtasks</label>
+                <ul class="list-group mb-2">
+                    {% for sub in subtasks %}
+                    <li class="list-group-item d-flex align-items-center">
+                        <input type="checkbox" class="form-check-input me-2" name="subtask_completed" value="{{ sub.id }}" {% if sub.completed %}checked{% endif %}>
+                        <input type="hidden" name="subtask_id" value="{{ sub.id }}">
+                        <input type="text" class="form-control me-2" name="subtask_title" value="{{ sub.title }}" style="max-width: 70%; display: inline-block;">
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="new_subtask_title" placeholder="Add new subtask">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="attachment" class="form-label">Add Attachment</label>
+                <input type="file" class="form-control" id="attachment" name="attachment">
+            </div>
+            {% if attachments and attachments|length > 0 %}
+            <div class="mb-3">
+                <label class="form-label">Attachments</label>
+                <ul class="list-group">
+                    {% for att in attachments %}
+                    <li class="list-group-item">
+                        <a href="{{ url_for('static', filename='attachments/' ~ att.filename) }}" target="_blank">{{ att.filename }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary">Update Task</button>
+            <a href="{{ url_for('tasks') }}" class="btn btn-secondary ms-2">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %} 
